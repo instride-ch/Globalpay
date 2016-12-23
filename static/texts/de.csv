@@ -1,0 +1,13 @@
+"globalpay_settings", "Einstellungen"
+"globalpay_settings_providers", "Providers"
+"globalpay_settings_provider", "Provider"
+"globalpay_settings_add_provider", "Provider hinzufügen"
+"globalpay_settings_remove", "Provider löschen"
+"globalpay_settings_remove_provider", "Bist du dir wirklich sicher?"
+"globalpay_settings_save_success", "Einstellungen wurden erfolgreich gespeichert"
+"globalpay_settings_save_error", "Einstellungen konnten nicht gespeichert werden"
+"globalpay_settings_delete_success", "Provider erfolgreich gelöscht"
+
+"globalpay_update", "Update"
+
+"globalpay_about", "ÜBER Globalpay &reg;"

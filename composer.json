@@ -1,0 +1,30 @@
+{
+    "name": "w-vision/Globalpay",
+    "type": "pimcore-plugin",
+    "license": "GPLv3",
+    "description": "Globalpay Plugin for Pimcore – enables access to various gateways",
+    "keywords": ["pimcore", "w-vision", "Globalpay", "pimcore-payment"],
+    "homepage": "http://www.w-vision.ch",
+    "authors": [{
+      "name": "w-vision",
+      "email": "support@w-vision.ch",
+      "homepage": "http://www.w-vision.ch",
+      "role": "Development agency"
+    }],
+    "require": {
+        "pimcore/installer-plugin": ">=1",
+        "omnipay/omnipay": "~2.0",
+        "bummzack/omnipay-postfinance": "~0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Globalpay\\": "lib"
+        }
+    },
+    "extra": {
+      "gateways": [
+          "Postfinance",
+          "Datatrans"
+      ]
+    }
+}

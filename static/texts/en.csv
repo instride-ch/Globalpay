@@ -1,0 +1,12 @@
+"globalpay_settings", "Settings"
+"globalpay_settings_providers", "Providers"
+"globalpay_settings_provider", "Provider"
+"globalpay_settings_add_provider", "Add Provider"
+"globalpay_settings_remove", "Remove provider"
+"globalpay_settings_remove_provider", "Are you really sure?"
+"globalpay_settings_save_success", "Settings were saved successfully"
+"globalpay_settings_save_error", "Settings could not be saved"
+
+"globalpay_update", "Update"
+
+"globalpay_about", "ABOUT Globalpay &reg;"

@@ -1,0 +1,29 @@
+#pimcore_menu_globalpay{
+    background-image: url(/plugins/Globalpay/static/img/globalpay_emblem.svg) !important;
+    width: 100%;
+    height: 100%;
+}
+
+.globalpay_icon_settings {
+    background: url(/pimcore/static6/img/flat-color-icons/services.svg) center center no-repeat !important;
+}
+
+.globalpay_icon_providers {
+    background: url(/pimcore/static6/img/flat-color-icons/in_transit.svg) left center no-repeat !important;
+}
+
+.globalpay_icon_postfinance {
+    background: url(/plugins/Globalpay/static/img/postfinance.svg) left center no-repeat !important;
+}
+
+.globalpay_icon_datatrans {
+    background: url(/plugins/Globalpay/static/img/datatrans.svg) left center no-repeat !important;
+}
+
+.globalpay_icon_update {
+    background: url(/plugins/Globalpay/static/img/update.svg) center center no-repeat !important;
+}
+
+.globalpay_icon_about {
+    background: url(/plugins/Globalpay/static/img/globalpay_emblem.svg) center center no-repeat !important;
+}
