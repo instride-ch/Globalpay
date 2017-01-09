@@ -15,29 +15,10 @@
 require 'PaymentController.php';
 
 /**
- * Class Globalpay_PostfinanceController
+ * Class Globalpay_DatatransController
  */
-class Globalpay_PostfinanceController extends Globalpay_PaymentController
+class Globalpay_DatatransController extends Globalpay_PaymentController
 {
-    /**
-     * This Action listens to server2server communication
-     *
-     * this action validates the GlobalpayPayment Object
-     */
-    public function paymentReturnServerAction()
-    {
-        $this->disableLayout();
-        $this->disableViewAutoRender();
-
-        try {
-            $this->processResponse();
-        } catch(\Exception $e) {
-            \Pimcore\Logger::notice($e->getMessage());
-        }
-
-        exit;
-    }
-
     /**
      * This Action can be called via Frontend
      *
@@ -71,7 +52,7 @@ class Globalpay_PostfinanceController extends Globalpay_PaymentController
         } catch(\Exception $e) {
             \Pimcore\Logger::notice($e->getMessage());
 
-
+            throw $e;
         }
     }
 
@@ -92,18 +73,9 @@ class Globalpay_PostfinanceController extends Globalpay_PaymentController
         } catch(\Exception $e) {
             \Pimcore\Logger::notice($e->getMessage());
 
-            throw new \Exception("Something bad happened");
+            throw new Exception("Something bad happened here");
         }
     }
-
-    /**
-     * @param \Omnipay\Common\Message\AbstractResponse $purchaseResponse
-     * @return \Pimcore\Model\Object\GlobalpayPayment|null
-     */
-    protected function getPaymentObject(\Omnipay\Common\Message\AbstractResponse $purchaseResponse) {
-        return \Pimcore\Model\Object\GlobalpayPayment::getById($purchaseResponse->getData()['ORDERID']);
-    }
-
 
     /**
      * @param \Pimcore\Model\Object\GlobalpayPayment $globalPayPayment
@@ -114,14 +86,7 @@ class Globalpay_PostfinanceController extends Globalpay_PaymentController
     {
         $params = parent::getGatewayParams($globalPayPayment);
 
-        $language = $this->language;
-        $gatewayLanguage = 'en_EN';
-
-        if(!empty($language)) {
-            $gatewayLanguage = $language . '_' . strtoupper($language);
-        }
-
-        $params['language'] = $gatewayLanguage;
+        $params['errorUrl'] = Pimcore\Tool::getHostUrl() . $this->getErrorUrl();
 
         return $params;
     }

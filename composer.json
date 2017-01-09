@@ -14,7 +14,8 @@
     "require": {
         "pimcore/installer-plugin": ">=1",
         "omnipay/omnipay": "~2.0",
-        "bummzack/omnipay-postfinance": "~0.1"
+        "bummzack/omnipay-postfinance": "~0.1",
+        "w-vision/omnipay-datatrans" : "dev-master"
     },
     "autoload": {
         "psr-4": {
@@ -23,7 +24,8 @@
     },
     "extra": {
       "gateways": [
-          "Postfinance"
+          "Postfinance",
+          "Datatrans"
       ]
     }
 }

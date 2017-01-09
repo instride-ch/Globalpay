@@ -27,6 +27,7 @@ class Globalpay_AdminController extends \Pimcore\Controller\Action\Admin
 
         foreach ($gateways as $gateway) {
             $class = \Omnipay\Common\Helper::getGatewayClassName($gateway);
+
             if (\Pimcore\Tool::classExists($class)) {
                 if (!in_array($gateway, $activeProviders)) {
                     $available[] = ['name' => $gateway];

@@ -74,6 +74,58 @@ class Globalpay_PaymentController extends Payment
         }
     }
 
+    protected function processResponse()
+    {
+        $purchaseResponse = $this->completePurchaseResponse();
+
+        \Pimcore\Logger::notice(sprintf('Globalpay [%s]: TransactionID: %s ,Status: %s', $this->getGatewayName(), $purchaseResponse->getTransactionReference(), $purchaseResponse->getCode()));
+
+        if (empty($purchaseResponse->getTransactionReference())) {
+            throw new \Exception(sprintf('Globalpay [%s]: No valid transaction id given', $this->getGatewayName()));
+        }
+
+        $globalPayPayment = $this->getPaymentObject($purchaseResponse);
+
+        if (!$globalPayPayment instanceof \Pimcore\Model\Object\GlobalpayPayment) {
+            throw new \Exception(sprintf('Globalpay [%s]: Order with identifier %s not found', $this->getGatewayName(), $purchaseResponse->getTransactionReference()));
+        }
+
+        $globalPayPayment->setStatus("success");
+        $globalPayPayment->save();
+
+        return $globalPayPayment;
+    }
+
+    /**
+     * @param \Omnipay\Common\Message\AbstractResponse $purchaseResponse
+     * @return \Pimcore\Model\Object\GlobalpayPayment|null
+     */
+    protected function getPaymentObject(\Omnipay\Common\Message\AbstractResponse $purchaseResponse) {
+        $globalPayPayments = \Pimcore\Model\Object\GlobalpayPayment::getByTransactionIdentifier($purchaseResponse->getTransactionReference());
+        $globalPayPayments = $globalPayPayments->getObjects();
+
+        if(count($globalPayPayments) === 1) {
+            return $globalPayPayments[0];
+        }
+
+        return null;
+    }
+
+    /**
+     * Complete the purchase
+     *
+     * @return \Omnipay\Common\Message\AbstractResponse
+     *
+     * @throws Exception
+     */
+    protected function completePurchaseResponse() {
+        if(!$this->getGateway()->supportsCompletePurchase()) {
+            throw new \Exception("does not support complete purchase");
+        }
+
+        return $this->getGateway()->completePurchase($this->getAllParams())->send();
+    }
+
     /**
      * Get all required Params for gateway.
      * extend this in your custom omnipay controller.
@@ -89,6 +141,7 @@ class Globalpay_PaymentController extends Payment
         $params = $this->getAllParams();
         $params['returnUrl'] = Pimcore\Tool::getHostUrl() . $this->getSuccessUrl();
         $params['cancelUrl'] = Pimcore\Tool::getHostUrl() . $this->getCancelUrl();
+        $params['errorUrl'] = Pimcore\Tool::getHostUrl() . $this->getErrorUrl();
         $params['amount'] = floatval($this->getParam('amount'));
         $params['currency'] = $this->getParam('currency');
         $params['transactionId'] = $globalPayPayment->getId();

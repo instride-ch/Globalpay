@@ -112,6 +112,9 @@ class Payment extends Action
      * @param GlobalpayPayment $payment
      */
     protected function forwardError(GlobalpayPayment $payment) {
+        $payment->setStatus("error");
+        $payment->save();
+
         $params = Serialize::unserialize($payment->getErrorParams());
         $params = array_merge($this->getAllParams(), $params);
 
@@ -161,8 +164,8 @@ class Payment extends Action
      *
      * @return mixed|string
      */
-    protected function getErrorUrl($message) {
-        $route = Staticroute::getCurrentRoute();
+    protected function getErrorUrl($message = '') {
+        $route = $this->getStaticroute();
 
         return $route->assemble([
             "act" => "error",
