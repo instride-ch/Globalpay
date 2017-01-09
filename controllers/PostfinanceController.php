@@ -12,175 +12,175 @@
  * @license    GNU General Public License version 3 (GPLv3)
  */
 
- require 'PaymentController.php';
+require 'PaymentController.php';
 
- class Globalpay_PostfinanceController extends Globalpay_PaymentController
- {
-     /**
-      * This Action listen to server2server communication
-      */
-     public function paymentReturnServerAction()
-     {
-         $requestData = $this->parseRequestData();
+/**
+ * Class Globalpay_PostfinanceController
+ */
+class Globalpay_PostfinanceController extends Globalpay_PaymentController
+{
+    /**
+     * This Action listens to server2server communication
+     *
+     * this action validates the GlobalpayPayment Object
+     */
+    public function paymentReturnServerAction()
+    {
+        $this->disableLayout();
+        $this->disableViewAutoRender();
 
-         $this->disableLayout();
-         $this->disableViewAutoRender();
+        try {
+            $payment = $this->_processRequest();
+        } catch(\Exception $e) {
+            \Pimcore\Logger::notice($e->getMessage());
+        }
 
-         \Pimcore\Logger::log('OmniPay paymentReturnServer [Postfinance]. TransactionID: ' . $requestData['transaction'] . ', Status: ' . $requestData['status']);
+        exit;
+    }
 
-         if ($requestData['status'] === 5) {
-             if (!empty($requestData['transaction'])) {
-                 $cart = \CoreShop\Model\Cart::findByCustomIdentifier($requestData['transaction']);
+    /**
+     * This Action can be called via Frontend
+     *
+     * @throws \Exception
+     */
+    public function successAction()
+    {
+        $this->disableLayout();
+        $this->disableViewAutoRender();
 
-                 if ($cart instanceof \CoreShop\Model\Cart) {
+        try {
+            $globalPayPayment = $this->_processRequest();
 
-                     \Pimcore\Logger::notice('OmniPay paymentReturnServer [Postfinance]: create order with: ' . $requestData['transaction']);
+            $this->forwardSuccess($globalPayPayment);
+        } catch(\Exception $e) {
+            \Pimcore\Logger::notice($e->getMessage());
+            $this->redirect($this->getErrorUrl($e->getMessage()));
+        }
+    }
 
-                     $order = $cart->createOrder(
-                         \CoreShop\Model\Order\State::getById(\CoreShop\Model\Configuration::get('SYSTEM.ORDERSTATE.PAYMENT')),
-                         $this->getModule(),
-                         $cart->getTotal(),
-                         $this->view->language
-                     );
+    public function cancelAction()
+    {
+        $this->disableLayout();
+        $this->disableViewAutoRender();
 
-                     $payments = $order->getPayments();
+        try {
+            $globalPayPayment = $this->_processRequest();
 
-                     foreach ($payments as $p) {
-                         $dataBrick = new \Pimcore\Model\Object\Objectbrick\Data\CoreShopPaymentOmnipay($p);
-                         $dataBrick->setTransactionId($requestData['transaction']);
-                         $p->save();
-                     }
+            $this->forwardCancel($globalPayPayment);
+        } catch(\Exception $e) {
+            \Pimcore\Logger::notice($e->getMessage());
+            $this->redirect($this->getErrorUrl($e->getMessage()));
+        }
+    }
 
-                 }else {
-                     \Pimcore\Logger::notice('Globalpay paymentReturnServer [Postfinance]: Cart with identifier' . $requestData['transaction'] . 'not found');
-                 }
-             } else {
-                 \Pimcore\Logger::notice('Globalpay paymentReturnServer [Postfinance]: No valid transaction id given');
-             }
-         } else {
-             \Pimcore\Logger::notice('Globalpay paymentReturnServer [Postfinance]: Error Status: ' . $requestData['status']);
-         }
+    public function errorAction()
+    {
+        $this->disableLayout();
+        $this->disableViewAutoRender();
 
-         exit;
-     }
+        try {
+            $globalPayPayment = $this->_processRequest();
 
-     /**
-      * This Action can be called via Frontend
-      * @throws \CoreShop\Exception
-      * @throws \CoreShop\Exception\ObjectUnsupportedException
-      */
-     public function paymentReturnAction()
-     {
-         $requestData = $this->parseRequestData();
+            if($globalPayPayment instanceof \Pimcore\Model\Object\GlobalpayPayment) {
+                $this->forwardError($globalPayPayment);
+            }
+            else {
+                throw new \Exception("Payment Information not found");
+            }
+        } catch(\Exception $e) {
+            \Pimcore\Logger::notice($e->getMessage());
 
-         $this->disableLayout();
-         $this->disableViewAutoRender();
+            $this->redirect($this->getErrorUrl($e->getMessage()));
+        }
+    }
 
-         \Pimcore\Logger::notice('Globalpay paymentReturn [Postfinance]. TransactionID: ' . $requestData['transaction'] . ', Status: ' . $requestData['status']);
+    private function _processRequest()
+    {
+        $requestData = $this->parseRequestData();
 
-         $redirectUrl = '';
+        \Pimcore\Logger::notice(sprintf('Globalpay [Postfinance]: TransactionID: %s ,Status: %s', $requestData['transaction'], $requestData['status']));
 
-         if ($requestData['status'] === 5) {
-             if (!empty($requestData['transaction'])) {
-                 $cart = \CoreShop\Model\Cart::findByCustomIdentifier($requestData['transaction']);
+        if (empty($requestData['transaction'])) {
+            throw new \Exception('Globalpay [Postfinance]: No valid transaction id given');
+        }
 
-                 if ($cart instanceof \CoreShop\Model\Cart) {
+        $globalPayPayment = \Pimcore\Model\Object\GlobalpayPayment::getById($requestData['transaction']);
 
-                     \Pimcore\Logger::notice('Globalpay paymentReturn [Postfinance]: create order with: ' . $requestData['transaction']);
+        if (!$globalPayPayment instanceof \Pimcore\Model\Object\GlobalpayPayment) {
+            throw new \Exception(sprintf('Globalpay [Postfinance]: Order with identifier %s not found', $requestData['transaction']));
+        }
 
-                     $order = $cart->createOrder(
-                         \CoreShop\Model\Order\State::getById(\CoreShop\Model\Configuration::get('SYSTEM.ORDERSTATE.PAYMENT')),
-                         $this->getModule(),
-                         $cart->getTotal(),
-                         $this->view->language
-                     );
+        $globalPayPayment->setStatus("success");
+        $globalPayPayment->save();
 
-                     $payments = $order->getPayments();
+        return $globalPayPayment;
+    }
 
-                     foreach ($payments as $p) {
-                         $dataBrick = new \Pimcore\Model\Object\Objectbrick\Data\CoreShopPaymentOmnipay($p);
-                         $dataBrick->setTransactionId($requestData['transaction']);
-                         $p->save();
-                     }
+    /**
+     * @param \Pimcore\Model\Object\GlobalpayPayment $globalPayPayment
+     *
+     * @return array
+     */
+    public function getGatewayParams($globalPayPayment)
+    {
+        $params = parent::getGatewayParams($globalPayPayment);
 
-                     $redirectUrl = Pimcore\Tool::getHostUrl() . $this->getModule()->getConfirmationUrl($order);
-                 } else {
-                     \Pimcore\Logger::notice('Globalpay paymentReturn [Postfinance]: Cart with identifier' . $requestData['transaction'] . 'not found');
-                     $redirectUrl = Pimcore\Tool::getHostUrl() . $this->getModule()->getErrorUrl('cart with identifier' . $requestData['transaction'] . 'not found');
-                 }
-             } else {
-                 \Pimcore\Logger::notice('Globalpay paymentReturn [Postfinance]: No valid transaction id given');
-                 $redirectUrl = Pimcore\Tool::getHostUrl() . $this->getModule()->getErrorUrl('no valid transaction id given');
-             }
-         } else {
-             \Pimcore\Logger::notice('Globalpay paymentReturn [Postfinance]: Error Status: ' . $requestData['status']);
-             $redirectUrl = Pimcore\Tool::getHostUrl() . $this->getModule()->getErrorUrl('Postfinance returned with an error. Error Status: ' . $requestData['status']);
-         }
+        $language = $this->language;
+        $gatewayLanguage = 'en_EN';
 
-         $this->redirect( $redirectUrl );
-         exit;
-     }
+        if(!empty($language)) {
+            $gatewayLanguage = $language . '_' . strtoupper($language);
+        }
 
-     public function getGatewayParams()
-     {
-         $params = parent::getGatewayParams();
+        $params['language'] = $gatewayLanguage;
 
-         $language = $this->language;
-         $gatewayLanguage = 'en_EN';
+        return $params;
+    }
 
-         if (!empty($language )) {
-             $gatewayLanguage = $language . '_' . strtoupper($language);
-         }
+    private function parseRequestData()
+    {
+        /**
+         * @var $transaction
+         * Globalpay transaction ID
+         *
+         */
+        $transaction = $_REQUEST['orderID'];
 
-         $params['language'] = $gatewayLanguage;
+        /**
+         * @var $status
+         *
+         * @see https://e-payment-postfinance.v-psp.com/en/guides/user%20guides/statuses-and-errors/statuses
+         *
+         * 0 => incomplete / not valid
+         * 1 => canceled by user
+         * 2 => canceled by financial institution
+         * 5 => approved
+         * 9 => payment requested
+         *
+         */
+        $status = (int) $_REQUEST['STATUS'];
 
-         return $params;
-     }
+        /**
+         * @var $payId
+         */
+        $payId = $_REQUEST['PAYID'];
 
-     private function parseRequestData()
-     {
-         /**
-          * @var $transaction
-          * CoreShop transaction ID
-          *
-          */
-         $transaction = $_REQUEST['orderID'];
+        /**
+         * @var $payIdSub
+         */
+        $payIdSub = $_REQUEST['PAYIDSUB'];
 
-         /**
-          * @var $status
-          *
-          * @see https://e-payment-postfinance.v-psp.com/en/guides/user%20guides/statuses-and-errors/statuses
-          *
-          * 0 => incomplete / not valid
-          * 1 => canceled by user
-          * 2 => canceled by financial institution
-          * 5 => approved
-          * 9 => payment requested
-          *
-          */
-         $status = (int) $_REQUEST['STATUS'];
+        /**
+         * @var $ncError
+         */
+        $ncError = $_REQUEST['NCERROR'];
 
-         /**
-          * @var $payId
-          */
-         $payId = $_REQUEST['PAYID'];
-
-         /**
-          * @var $payIdSub
-          */
-         $payIdSub = $_REQUEST['PAYIDSUB'];
-
-         /**
-          * @var $ncError
-          */
-         $ncError = $_REQUEST['NCERROR'];
-
-         return [
-             'transaction' => $transaction,
-             'status' => $status,
-             'payId' => $payId,
-             'payIdSub' => $payIdSub,
-             'ncError' => $ncError
+        return [
+            'transaction'           => $transaction,
+            'status'                => $status,
+            'payId'                 => $payId,
+            'payIdSub'              => $payIdSub,
+            'ncError'               => $ncError
         ];
-     }
- }
+    }
+}

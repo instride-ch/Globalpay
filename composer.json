@@ -23,8 +23,7 @@
     },
     "extra": {
       "gateways": [
-          "Postfinance",
-          "Datatrans"
+          "Postfinance"
       ]
     }
 }

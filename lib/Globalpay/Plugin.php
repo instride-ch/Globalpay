@@ -6,9 +6,29 @@ use Pimcore\API\Plugin as PluginLib;
 
 class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterface
 {
+    /**
+     * @var \Zend_Translate
+     */
+    protected static $_translate;
+
+    /**
+     *
+     */
     public function init()
     {
         parent::init();
+
+        require_once PIMCORE_PLUGINS_PATH.'/Globalpay/config/helper.php';
+
+        \Zend_Controller_Action_HelperBroker::addPath(PIMCORE_PLUGINS_PATH.'/Globalpay/lib/Globalpay/Controller/Action/Helper', 'Globalpay\Controller\Action\Helper');
+
+        \Pimcore::getEventManager()->attach('system.startup', function (\Zend_EventManager_Event $e) {
+            $frontController = $e->getTarget();
+
+            if ($frontController instanceof \Zend_Controller_Front) {
+                $frontController->registerPlugin(new Controller\Plugin\GatewayRouter());
+            }
+        });
     }
 
     public static function install()

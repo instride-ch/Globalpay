@@ -12,40 +12,35 @@
  * @license    GNU General Public License version 3 (GPLv3)
  */
 
- namespace Globalpay\Controller\Plugin;
+namespace Globalpay\Controller\Plugin;
 
- use Pimcore\Model\Staticroute;
+use Pimcore\Model\Staticroute;
 
- /**
-  * Class TemplateRouter
-  * 
-  * @package Globalpay\Controller\Plugin
-  */
- class GatewayRouter extends \Zend_Controller_Plugin_Abstract
- {
-     /**
-      * Checks if Controller is available in Template and use it.
-      *
-      * @param \Zend_Controller_Request_Abstract $request
-      */
-     public function routeShutdown(\Zend_Controller_Request_Abstract $request)
-     {
-         $gatewayRequest = clone $request;
+/**
+ * Class TemplateRouter
+ *
+ * @package Globalpay\Controller\Plugin
+ */
+class GatewayRouter extends \Zend_Controller_Plugin_Abstract
+{
+    /**
+     * Checks if Controller is available in Template and use it.
+     *
+     * @param \Zend_Controller_Request_Abstract $request
+     */
+    public function routeShutdown(\Zend_Controller_Request_Abstract $request)
+    {
+        $gatewayRequest = clone $request;
 
-         if ($request->getModuleName() === 'Globalpay') {
-             $frontController = \Zend_Controller_Front::getInstance();
-             $route = Staticroute::getCurrentRoute();
+        if ($request->getModuleName() === 'Globalpay') {
+            $frontController = \Zend_Controller_Front::getInstance();
 
-             if ($route) {
-                 if ($route->getName() === 'coreshop_omnipay_payment') {
-                     $gateway = ucfirst($request->getParam('gateway'));
-                     $gatewayRequest->setControllerName($gateway);
+            $gateway = ucfirst($request->getParam('gateway'));
+            $gatewayRequest->setControllerName($gateway);
 
-                     if ($frontController->getDispatcher()->isDispatchable($gatewayRequest)) {
-                         $request->setControllerName($gateway);
-                     }
-                 }
-             }
-         }
-     }
- }
+            if ($frontController->getDispatcher()->isDispatchable($gatewayRequest)) {
+                $request->setControllerName($gateway);
+            }
+        }
+    }
+}

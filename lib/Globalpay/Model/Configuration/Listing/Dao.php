@@ -12,55 +12,55 @@
  * @license    GNU General Public License version 3 (GPLv3)
  */
 
- namespace Globalpay\Model\Configuration\Listing;
+namespace Globalpay\Model\Configuration\Listing;
 
- use Pimcore;
- use Globalpay\Model;
+use Pimcore;
+use Globalpay\Model;
 
- /**
-  * Class Dao
-  * @package Globalpay\Model\Configuration\Listing
-  */
- class Dao extends Pimcore\Model\Dao\PhpArrayTable
- {
-     /**
-      * configure.
-      */
-     public function configure()
-     {
-         parent::configure();
-         $this->setFile('globalpay_configurations');
-     }
+/**
+ * Class Dao
+ * @package Globalpay\Model\Configuration\Listing
+ */
+class Dao extends Pimcore\Model\Dao\PhpArrayTable
+{
+    /**
+     * configure.
+     */
+    public function configure()
+    {
+        parent::configure();
+        $this->setFile('globalpay_configurations');
+    }
 
-     /**
-      * Loads a list of Configurations for the specicifies parameters, returns an array of Configuration elements.
-      *
-      * @return array
-      */
-     public function load()
-     {
-         $routesData = $this->db->fetchAll($this->model->getFilter(), $this->model->getOrder());
+    /**
+     * Loads a list of Configurations for the specicifies parameters, returns an array of Configuration elements.
+     *
+     * @return array
+     */
+    public function load()
+    {
+        $routesData = $this->db->fetchAll($this->model->getFilter(), $this->model->getOrder());
 
-         $routes = array();
-         foreach ($routesData as $routeData) {
-             $routes[] = Model\Configuration::getById($routeData['id']);
-         }
+        $routes = array();
+        foreach ($routesData as $routeData) {
+            $routes[] = Model\Configuration::getById($routeData['id']);
+        }
 
-         $this->model->setConfigurations($routes);
+        $this->model->setConfigurations($routes);
 
-         return $routes;
-     }
+        return $routes;
+    }
 
-     /**
-      * get total count.
-      *
-      * @return int
-      */
-     public function getTotalCount()
-     {
-         $data = $this->db->fetchAll($this->model->getFilter(), $this->model->getOrder());
-         $amount = count($data);
+    /**
+     * get total count.
+     *
+     * @return int
+     */
+    public function getTotalCount()
+    {
+        $data = $this->db->fetchAll($this->model->getFilter(), $this->model->getOrder());
+        $amount = count($data);
 
-         return $amount;
-     }
- }
+        return $amount;
+    }
+}

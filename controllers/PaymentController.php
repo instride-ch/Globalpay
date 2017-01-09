@@ -12,39 +12,49 @@
  * @license    GNU General Public License version 3 (GPLv3)
  */
 
-use Omnipay\Controller\Payment;
+use Globalpay\Controller\Payment;
 
 class Globalpay_PaymentController extends Payment
 {
     public function paymentAction()
     {
-        $gateway = $this->getModule()->getGateway();
+        $gateway = $this->getGateway();
 
         if (!$gateway->supportsPurchase()) {
-            \Pimcore\Logger::error('Globalpay Gateway payment [' . $this->getModule()->getName() . '] does not support purchase');
+            \Pimcore\Logger::error(sprintf('Globalpay Gateway payment [%s] does not support purchase', $this->getGatewayName()));
             throw new \Exception('Gateway does not support purchase!');
         }
 
-        $params = $this->getGatewayParams();
+        $paymentObject = new \Pimcore\Model\Object\GlobalpayPayment();
+        $paymentObject->setValues($this->getAllParams());
+        $paymentObject->setParent(\Pimcore\Model\Object\Service::createFolderByPath("/globalpay/payments"));
+        $paymentObject->setKey(uniqid());
+        $paymentObject->setErrorParams(\Pimcore\Tool\Serialize::serialize($this->getParam("errorParams")));
+        $paymentObject->setSuccessParams(\Pimcore\Tool\Serialize::serialize($this->getParam("successParams")));
+        $paymentObject->setCancelParams(\Pimcore\Tool\Serialize::serialize($this->getParam("cancelParams")));
+        $paymentObject->setPublished(true);
+        $paymentObject->save();
+
+        $params = $this->getGatewayParams($paymentObject);
         $response = $gateway->purchase($params)->send();
 
         if ($response instanceof \Omnipay\Common\Message\ResponseInterface) {
 
             if ($response->getTransactionReference()) {
-                $this->cart->setCustomIdentifier($response->getTransactionReference());
+                $paymentObject->setTransactionIdentifier($response->getTransactionReference());
             } else {
-                $this->cart->setCustomIdentifier($params['transactionId']);
+                $paymentObject->setTransactionIdentifier($params['transactionId']);
             }
 
-            $this->cart->save();
+            $paymentObject->save();
 
             try {
                 if ($response->isSuccessful()) {
-                    \Pimcore\Logger::notice('Globalpay Gateway payment [' . $this->getModule()->getName() . ']: Gateway successfully responded redirect!');
+                    \Pimcore\Logger::notice(sprintf('Globalpay Gateway payment [%s]: Gateway successfully responded redirect!', $this->getGatewayName()));
                     $this->redirect($params['returnUrl']);
                 } else if ($response->isRedirect()) {
                     if ($response instanceof \Omnipay\Common\Message\RedirectResponseInterface) {
-                        \Pimcore\Logger::notice('Globalpay Gateway payment [' . $this->getModule()->getName() . ']: response is a redirect. RedirectMethod: ' . $response->getRedirectMethod());
+                        \Pimcore\Logger::notice(sprintf('Globalpay Gateway payment [%s]: response is a redirect. RedirectMethod: %s', $this->getGatewayName(), $response->getRedirectMethod()));
 
                         if ($response->getRedirectMethod() === 'GET') {
                             $this->redirect($response->getRedirectUrl());
@@ -57,67 +67,31 @@ class Globalpay_PaymentController extends Payment
                     throw new \Exception($response->getMessage());
                 }
             } catch(\Exception $e) {
-                \Pimcore\Logger::error('Globalpay Gateway payment [' . $this->getModule()->getName() . '] Error: ' . $e->getMessage());
+                \Pimcore\Logger::error(sprintf('Globalpay Gateway payment [%s] Error: %s', $this->getGatewayName(), $e->getMessage()));
+                throw $e;
             }
 
         }
-    }
-
-    public function paymentReturnAbortAction()
-    {
-        die('TODO: Canceled checkout');
-        // $this->forward('canceled', 'checkout', 'Globalpay', []);
-    }
-
-    public function errorAction()
-    {
-        die('TODO: Error checkout');
-        // $this->forward('error', 'checkout', 'Globalpay', []);
-    }
-
-    public function confirmationAction()
-    {
-        $orderId = $this->getParam('order');
-
-        if ($orderId) {
-            $order = \CoreShop\Model\Order::getById($orderId);
-
-            if ($order instanceof \CoreShop\Model\Order) {
-                $this->session->order = $order;
-            }
-        }
-
-        parent::confirmationAction();
-    }
-
-    /**
-     * @return Omnipay\Shop\Provider
-     */
-    public function getModule()
-    {
-        if (is_null($this->module)) {
-            $this->module = \CoreShop::getPaymentProvider('omnipay' . $this->gateway);
-        }
-
-        return $this->module;
     }
 
     /**
      * Get all required Params for gateway.
      * extend this in your custom omnipay controller.
      *
+     * @param \Pimcore\Model\Object\GlobalpayPayment $globalPayPayment
+     *
      * @return array
      */
-    public function getGatewayParams()
+    public function getGatewayParams($globalPayPayment)
     {
         $cardParams = $this->getParam('card', []);
 
         $params = $this->getAllParams();
-        $params['returnUrl'] = Pimcore\Tool::getHostUrl() . $this->getModule()->url($this->getModule()->getIdentifier(), 'payment-return');
-        $params['cancelUrl'] = Pimcore\Tool::getHostUrl() . $this->getModule()->url($this->getModule()->getIdentifier(), 'payment-return-abort');
-        $params['amount'] = $this->cart->getTotal();
-        $params['currency'] = \Coreshop::getTools()->getCurrency()->getIsoCode();
-        $params['transactionId'] = uniqid();
+        $params['returnUrl'] = Pimcore\Tool::getHostUrl() . $this->getSuccessUrl();
+        $params['cancelUrl'] = Pimcore\Tool::getHostUrl() . $this->getCancelUrl();
+        $params['amount'] = floatval($this->getParam('amount'));
+        $params['currency'] = $this->getParam('currency');
+        $params['transactionId'] = $globalPayPayment->getId();
 
         if (count($cardParams) > 0) {
             $params['card'] = new \Omnipay\Common\CreditCard($cardParams);

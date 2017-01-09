@@ -5,5 +5,5 @@
 </form>
 
 <script type="text/javascript">
-    $('#redirect').submit();
+    document.getElementById('redirect').submit();
 </script>
