@@ -25,7 +25,9 @@
     "extra": {
       "gateways": [
           "Postfinance",
-          "Datatrans"
+          "Datatrans",
+          "Datatrans_Xml",
+          "Datatrans_Lightbox"
       ]
     }
 }

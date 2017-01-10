@@ -65,6 +65,9 @@ class Globalpay extends \Zend_Controller_Action_Helper_Abstract
             'cancelParams' => $cancelForward['params']
         ]);
 
-        $this->getActionController()->forward("payment", "payment", "Globalpay", $params);
+        $filter = new \Zend_Filter_Word_UnderscoreToDash();
+        $controller = $filter->filter(ucfirst(strtolower($gateway)));
+
+        $this->getActionController()->forward("payment", $controller, "Globalpay", $params);
     }
 }

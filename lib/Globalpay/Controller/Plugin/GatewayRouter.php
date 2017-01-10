@@ -36,6 +36,10 @@ class GatewayRouter extends \Zend_Controller_Plugin_Abstract
             $frontController = \Zend_Controller_Front::getInstance();
 
             $gateway = ucfirst($request->getParam('gateway'));
+
+            $filter = new \Zend_Filter_Word_UnderscoreToDash();
+            $gateway = $filter->filter(ucfirst(strtolower($gateway)));
+
             $gatewayRequest->setControllerName($gateway);
 
             if ($frontController->getDispatcher()->isDispatchable($gatewayRequest)) {

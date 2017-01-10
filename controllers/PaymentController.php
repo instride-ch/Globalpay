@@ -25,15 +25,7 @@ class Globalpay_PaymentController extends Payment
             throw new \Exception('Gateway does not support purchase!');
         }
 
-        $paymentObject = new \Pimcore\Model\Object\GlobalpayPayment();
-        $paymentObject->setValues($this->getAllParams());
-        $paymentObject->setParent(\Pimcore\Model\Object\Service::createFolderByPath("/globalpay/payments"));
-        $paymentObject->setKey(uniqid());
-        $paymentObject->setErrorParams(\Pimcore\Tool\Serialize::serialize($this->getParam("errorParams")));
-        $paymentObject->setSuccessParams(\Pimcore\Tool\Serialize::serialize($this->getParam("successParams")));
-        $paymentObject->setCancelParams(\Pimcore\Tool\Serialize::serialize($this->getParam("cancelParams")));
-        $paymentObject->setPublished(true);
-        $paymentObject->save();
+        $paymentObject = $this->createPaymentObject();
 
         $params = $this->getGatewayParams($paymentObject);
         $response = $gateway->purchase($params)->send();
@@ -51,7 +43,7 @@ class Globalpay_PaymentController extends Payment
             try {
                 if ($response->isSuccessful()) {
                     \Pimcore\Logger::notice(sprintf('Globalpay Gateway payment [%s]: Gateway successfully responded redirect!', $this->getGatewayName()));
-                    $this->redirect($params['returnUrl']);
+                    $this->forwardSuccess($paymentObject);
                 } else if ($response->isRedirect()) {
                     if ($response instanceof \Omnipay\Common\Message\RedirectResponseInterface) {
                         \Pimcore\Logger::notice(sprintf('Globalpay Gateway payment [%s]: response is a redirect. RedirectMethod: %s', $this->getGatewayName(), $response->getRedirectMethod()));
@@ -64,7 +56,7 @@ class Globalpay_PaymentController extends Payment
                         }
                     }
                 } else {
-                    throw new \Exception($response->getMessage());
+                    $this->forwardError($paymentObject);
                 }
             } catch(\Exception $e) {
                 \Pimcore\Logger::error(sprintf('Globalpay Gateway payment [%s] Error: %s', $this->getGatewayName(), $e->getMessage()));
@@ -72,6 +64,20 @@ class Globalpay_PaymentController extends Payment
             }
 
         }
+    }
+
+    protected function createPaymentObject() {
+        $paymentObject = new \Pimcore\Model\Object\GlobalpayPayment();
+        $paymentObject->setValues($this->getAllParams());
+        $paymentObject->setParent(\Pimcore\Model\Object\Service::createFolderByPath("/globalpay/payments"));
+        $paymentObject->setKey(uniqid());
+        $paymentObject->setErrorParams(\Pimcore\Tool\Serialize::serialize($this->getParam("errorParams")));
+        $paymentObject->setSuccessParams(\Pimcore\Tool\Serialize::serialize($this->getParam("successParams")));
+        $paymentObject->setCancelParams(\Pimcore\Tool\Serialize::serialize($this->getParam("cancelParams")));
+        $paymentObject->setPublished(true);
+        $paymentObject->save();
+
+        return $paymentObject;
     }
 
     protected function processResponse()
