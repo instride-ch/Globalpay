@@ -16,6 +16,7 @@ namespace Globalpay\Controller;
 
 use Globalpay\Model\Configuration;
 use Omnipay\Common\AbstractGateway;
+use Omnipay\Common\Message\ResponseInterface;
 use Pimcore\Model\Object\GlobalpayPayment;
 use Pimcore\Model\Staticroute;
 use Pimcore\Tool\Serialize;
@@ -86,10 +87,12 @@ class Payment extends Action
      * forward success to responsible controller
      *
      * @param GlobalpayPayment $payment
+     * @param ResponseInterface $response
      */
-    protected function forwardSuccess(GlobalpayPayment $payment) {
+    protected function forwardSuccess(GlobalpayPayment $payment, $response) {
         $params = Serialize::unserialize($payment->getSuccessParams());
         $params = array_merge($this->getAllParams(), $params);
+        $params['omnipay_response'] = $response;
 
         $this->forward($payment->getSuccessAction(), $payment->getSuccessController(), $payment->getSuccessModule(), $params);
     }
@@ -98,10 +101,12 @@ class Payment extends Action
      * forward success to responsible controller
      *
      * @param GlobalpayPayment $payment
+     * @param ResponseInterface $response
      */
-    protected function forwardCancel(GlobalpayPayment $payment) {
+    protected function forwardCancel(GlobalpayPayment $payment, $response) {
         $params = Serialize::unserialize($payment->getCancelParams());
         $params = array_merge($this->getAllParams(), $params);
+        $params['omnipay_response'] = $response;
 
         $this->forward($payment->getCancelAction(), $payment->getCancelController(), $payment->getCancelModule(), $params);
     }
@@ -110,13 +115,15 @@ class Payment extends Action
      * forward error to responsible controller
      *
      * @param GlobalpayPayment $payment
+     * @param ResponseInterface $response
      */
-    protected function forwardError(GlobalpayPayment $payment) {
+    protected function forwardError(GlobalpayPayment $payment, $response) {
         $payment->setStatus("error");
         $payment->save();
 
         $params = Serialize::unserialize($payment->getErrorParams());
         $params = array_merge($this->getAllParams(), $params);
+        $params['omnipay_response'] = $response;
 
         $this->forward($payment->getErrorAction(), $payment->getErrorController(), $payment->getErrorModule(), $params);
     }

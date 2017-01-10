@@ -31,7 +31,6 @@ class Globalpay_PaymentController extends Payment
         $response = $gateway->purchase($params)->send();
 
         if ($response instanceof \Omnipay\Common\Message\ResponseInterface) {
-
             if ($response->getTransactionReference()) {
                 $paymentObject->setTransactionIdentifier($response->getTransactionReference());
             } else {
@@ -40,6 +39,12 @@ class Globalpay_PaymentController extends Payment
 
             $paymentObject->save();
 
+            $this->handleOmnipayResponse($response, $paymentObject);
+        }
+    }
+
+    protected function handleOmnipayResponse(\Omnipay\Common\Message\ResponseInterface $response, \Pimcore\Model\Object\GlobalpayPayment $paymentObject) {
+        if ($response instanceof \Omnipay\Common\Message\ResponseInterface) {
             try {
                 if ($response->isSuccessful()) {
                     \Pimcore\Logger::notice(sprintf('Globalpay Gateway payment [%s]: Gateway successfully responded redirect!', $this->getGatewayName()));
@@ -56,13 +61,12 @@ class Globalpay_PaymentController extends Payment
                         }
                     }
                 } else {
-                    $this->forwardError($paymentObject);
+                    $this->forwardError($paymentObject, $response);
                 }
             } catch(\Exception $e) {
                 \Pimcore\Logger::error(sprintf('Globalpay Gateway payment [%s] Error: %s', $this->getGatewayName(), $e->getMessage()));
                 throw $e;
             }
-
         }
     }
 
@@ -80,10 +84,13 @@ class Globalpay_PaymentController extends Payment
         return $paymentObject;
     }
 
-    protected function processResponse()
+    /**
+     * @param $purchaseResponse
+     * @return null|\Pimcore\Model\Object\GlobalpayPayment
+     * @throws Exception
+     */
+    protected function processResponse($purchaseResponse)
     {
-        $purchaseResponse = $this->completePurchaseResponse();
-
         \Pimcore\Logger::notice(sprintf('Globalpay [%s]: TransactionID: %s ,Status: %s', $this->getGatewayName(), $purchaseResponse->getTransactionReference(), $purchaseResponse->getCode()));
 
         if (empty($purchaseResponse->getTransactionReference())) {

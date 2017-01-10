@@ -30,7 +30,8 @@ class Globalpay_PostfinanceController extends Globalpay_PaymentController
         $this->disableViewAutoRender();
 
         try {
-            $this->processResponse();
+            $response = $this->completePurchaseResponse();
+            $globalPayPayment = $this->processResponse($response);
         } catch(\Exception $e) {
             \Pimcore\Logger::notice($e->getMessage());
         }
@@ -49,9 +50,10 @@ class Globalpay_PostfinanceController extends Globalpay_PaymentController
         $this->disableViewAutoRender();
 
         try {
-            $globalPayPayment = $this->processResponse();
+            $response = $this->completePurchaseResponse();
+            $globalPayPayment = $this->processResponse($response);
 
-            $this->forwardSuccess($globalPayPayment);
+            $this->forwardSuccess($globalPayPayment, $response);
         } catch(\Exception $e) {
             \Pimcore\Logger::notice($e->getMessage());
 
@@ -65,9 +67,10 @@ class Globalpay_PostfinanceController extends Globalpay_PaymentController
         $this->disableViewAutoRender();
 
         try {
-            $globalPayPayment = $this->processResponse();
+            $response = $this->completePurchaseResponse();
+            $globalPayPayment = $this->processResponse($response);
 
-            $this->forwardCancel($globalPayPayment);
+            $this->forwardCancel($globalPayPayment, $response);
         } catch(\Exception $e) {
             \Pimcore\Logger::notice($e->getMessage());
 
@@ -81,10 +84,11 @@ class Globalpay_PostfinanceController extends Globalpay_PaymentController
         $this->disableViewAutoRender();
 
         try {
-            $globalPayPayment = $this->processResponse();
+            $response = $this->completePurchaseResponse();
+            $globalPayPayment = $this->processResponse($response);
 
             if($globalPayPayment instanceof \Pimcore\Model\Object\GlobalpayPayment) {
-                $this->forwardError($globalPayPayment);
+                $this->forwardError($globalPayPayment, $response);
             }
             else {
                 throw new \Exception("Payment Information not found");

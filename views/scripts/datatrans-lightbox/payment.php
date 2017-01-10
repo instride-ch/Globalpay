@@ -8,7 +8,9 @@
     <button id="paymentButton"><?=$this->translate("Pay")?></button>
 </form>
 <script type="text/javascript">
-    $("#paymentButton").click(function () {
-        Datatrans.startPayment({'form': '#paymentForm'});
+    $(document).ready(function() {
+        $("#paymentButton").click(function () {
+            Datatrans.startPayment({'form': '#paymentForm'});
+        });
     });
 </script>
