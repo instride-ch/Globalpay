@@ -50,7 +50,7 @@ class Globalpay_DatatransController extends Globalpay_PaymentController
             $response = $this->completePurchaseResponse();
             $globalPayPayment = $this->processResponse($response);
 
-            $this->forwardCancel($globalPayPayment);
+            $this->forwardCancel($globalPayPayment, $response);
         } catch(\Exception $e) {
             \Pimcore\Logger::notice($e->getMessage());
 

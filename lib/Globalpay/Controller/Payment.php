@@ -62,25 +62,8 @@ class Payment extends Action
         );
     }
 
-    public function confirmationAction()
-    {
-        $payments = GlobalpayPayment::getByTransactionIdentifier($this->getParam("transaction"));
-
-        if(count($payments) === 1) {
-            $payment = $payments[0];
-
-            $this->forwardSuccess($payment);
-        }
-    }
-
     public function errorAction() {
-        $payments = GlobalpayPayment::getByTransactionIdentifier($this->getParam("transaction"));
-
-        if(count($payments) === 1) {
-            $payment = $payments[0];
-
-            $this->forwardError($payment);
-        }
+        throw new \Exception("implement me");
     }
 
     /**
@@ -91,7 +74,7 @@ class Payment extends Action
      */
     protected function forwardSuccess(GlobalpayPayment $payment, $response) {
         $params = Serialize::unserialize($payment->getSuccessParams());
-        $params = array_merge($this->getAllParams(), $params);
+        $params = array_merge($this->getAllParams(), is_array($params) ? $params : []);
         $params['omnipay_response'] = $response;
 
         $this->forward($payment->getSuccessAction(), $payment->getSuccessController(), $payment->getSuccessModule(), $params);
@@ -105,7 +88,7 @@ class Payment extends Action
      */
     protected function forwardCancel(GlobalpayPayment $payment, $response) {
         $params = Serialize::unserialize($payment->getCancelParams());
-        $params = array_merge($this->getAllParams(), $params);
+        $params = array_merge($this->getAllParams(), is_array($params) ? $params : []);
         $params['omnipay_response'] = $response;
 
         $this->forward($payment->getCancelAction(), $payment->getCancelController(), $payment->getCancelModule(), $params);
@@ -122,7 +105,7 @@ class Payment extends Action
         $payment->save();
 
         $params = Serialize::unserialize($payment->getErrorParams());
-        $params = array_merge($this->getAllParams(), $params);
+        $params = array_merge($this->getAllParams(), is_array($params) ? $params : []);
         $params['omnipay_response'] = $response;
 
         $this->forward($payment->getErrorAction(), $payment->getErrorController(), $payment->getErrorModule(), $params);

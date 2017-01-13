@@ -5,12 +5,9 @@
       <?php foreach($this->params as $key => $value) : ?>
       data-<?=$key?>="<?=$value?>"
       <?php endforeach; ?>
-    <button id="paymentButton"><?=$this->translate("Pay")?></button>
 </form>
 <script type="text/javascript">
     $(document).ready(function() {
-        $("#paymentButton").click(function () {
-            Datatrans.startPayment({'form': '#paymentForm'});
-        });
+        Datatrans.startPayment({'form': '#paymentForm'});
     });
 </script>
