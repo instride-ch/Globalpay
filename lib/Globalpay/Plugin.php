@@ -2,7 +2,9 @@
 
 namespace Globalpay;
 
+use Globalpay\Plugin\Install;
 use Pimcore\API\Plugin as PluginLib;
+use Pimcore\Model\Object\ClassDefinition;
 
 class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterface
 {
@@ -31,19 +33,30 @@ class Plugin extends PluginLib\AbstractPlugin implements PluginLib\PluginInterfa
         });
     }
 
+    /**
+     * @return bool
+     */
     public static function install()
     {
-        return true;
+        $install = new Install();
+
+        return $install->fullInstall();
     }
 
+    /**
+     * @return bool
+     */
     public static function uninstall()
     {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public static function isInstalled()
     {
-        return true;
+        return ClassDefinition::getByName('GlobalpayPayment') instanceof ClassDefinition;
     }
 
     /**
