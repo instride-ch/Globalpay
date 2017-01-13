@@ -19,11 +19,6 @@ require 'PaymentController.php';
  */
 class Globalpay_DatatransController extends Globalpay_PaymentController
 {
-    /**
-     * This Action can be called via Frontend
-     *
-     * @throws \Exception
-     */
     public function successAction()
     {
         $this->disableLayout();

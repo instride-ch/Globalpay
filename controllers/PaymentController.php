@@ -48,7 +48,7 @@ class Globalpay_PaymentController extends Payment
             try {
                 if ($response->isSuccessful()) {
                     \Pimcore\Logger::notice(sprintf('Globalpay Gateway payment [%s]: Gateway successfully responded redirect!', $this->getGatewayName()));
-                    $this->forwardSuccess($paymentObject);
+                    $this->forwardSuccess($paymentObject, $response);
                 } else if ($response->isRedirect()) {
                     if ($response instanceof \Omnipay\Common\Message\RedirectResponseInterface) {
                         \Pimcore\Logger::notice(sprintf('Globalpay Gateway payment [%s]: response is a redirect. RedirectMethod: %s', $this->getGatewayName(), $response->getRedirectMethod()));
@@ -127,7 +127,7 @@ class Globalpay_PaymentController extends Payment
     /**
      * Complete the purchase
      *
-     * @return \Omnipay\Common\Message\AbstractResponse
+     * @return \Omnipay\Common\Message\ResponseInterface
      *
      * @throws Exception
      */
