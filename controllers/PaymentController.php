@@ -13,6 +13,7 @@
  */
 
 use Globalpay\Controller\Payment;
+use Pimcore\Model\Object;
 
 class Globalpay_PaymentController extends Payment
 {
@@ -72,7 +73,16 @@ class Globalpay_PaymentController extends Payment
 
     protected function createPaymentObject() {
         $paymentObject = new \Pimcore\Model\Object\GlobalpayPayment();
-        $paymentObject->setValues($this->getAllParams());
+        $data = $this->getAllParams();
+
+        foreach ($data as $key => $value) {
+            $fd = $paymentObject->getClass()->getFieldDefinition($key);
+
+            if ($fd) {
+                $paymentObject->setValue($key, $value);
+            }
+        }
+
         $paymentObject->setParent(\Pimcore\Model\Object\Service::createFolderByPath("/globalpay/payments"));
         $paymentObject->setKey(uniqid());
         $paymentObject->setErrorParams(\Pimcore\Tool\Serialize::serialize($this->getParam("errorParams")));
