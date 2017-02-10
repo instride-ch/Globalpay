@@ -12,7 +12,7 @@ Globalpay Plugin for Pimcore – enables access to various gateways
 Install with composer
 
 ```
-composer require w-vision/Globalpay 1.0
+composer require w-vision/Globalpay 1.0.0
 ```
 
 ### Description
