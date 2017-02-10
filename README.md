@@ -49,7 +49,7 @@ $this->_helper->globalpay('Postfinance', 'donate_pay', 100, 'CHF', [
 
 ### Configuring Custom Routes
 ```
- Name: payment
+ Name: donate_pay
  Pattern: /(\w+)\/payment\/(.*)\/(\w+)/
  Reverse: /%lang/payment/%gateway/%act
  Module: Globalpay
