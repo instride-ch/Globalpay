@@ -16,6 +16,7 @@
                 'form': '#paymentForm',
                 'closed': function() {
                     $(document).trigger("DatatransLightboxClose");
+                    $('#paymentForm').remove();
                 }
             });
         });
