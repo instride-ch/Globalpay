@@ -9,7 +9,6 @@
         jq.src = '//code.jquery.com/jquery-1.11.2.min.js';
         document.getElementsByTagName('head')[0].appendChild(jq);
     }
-
     $(document).ready(function() {
         $.getScript('//pilot.datatrans.biz/upp/payment/js/datatrans-1.0.2.js', function () {
             Datatrans.startPayment({
