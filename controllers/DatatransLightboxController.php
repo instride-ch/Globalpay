@@ -44,6 +44,8 @@ class Globalpay_DatatransLightboxController extends Globalpay_DatatransControlle
 
         $filter = new \Zend_Filter_Word_CamelCaseToDash();
 
+        $this->view->testMode = $gateway->getTestMode() === 'true';
+
         foreach($response->getData() as $key => $value) {
             $this->view->params[$filter->filter($key)] = $value;
         }
