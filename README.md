@@ -1,9 +1,7 @@
-# Globalpay
-================
+![Globalpay](docs/images/github_banner.png "Globalpay")
 
-[![Latest Stable Version](https://poser.pugx.org/coreshop/omnipay/v/stable)](https://packagist.org/packages/coreshop/omnipay)
-[![Total Downloads](https://poser.pugx.org/coreshop/omnipay/downloads)](https://packagist.org/packages/coreshop/omnipay)
-[![License](https://poser.pugx.org/coreshop/omnipay/license)](https://packagist.org/packages/coreshop/omnipay)
+[![Software License](https://img.shields.io/badge/license-GPLv3-brightgreen.svg?style=flat-square)](LICENSE.md)
+[![Latest Stable Version](https://img.shields.io/packagist/v/w-vision/globalpay.svg?style=flat-square)](https://packagist.org/packages/w-vision/globalpay)
 
 Globalpay Plugin for Pimcore – enables access to various gateways
 
